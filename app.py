@@ -15,6 +15,7 @@ def run_all_models(text):
     return {'PII': pii_entities, 'PCI': pci_entities, 'PHI': phi_entities}
 
 # Resolve conflicts between models
+# Resolve conflicts between models
 def resolve_conflicts(entities):
     resolved_entities = []
     entity_map = {}
@@ -28,19 +29,20 @@ def resolve_conflicts(entities):
             score = entity['score']
             
             if (start, end) not in entity_map:
-                entity_map[(start, end)] = {'text': text, 'label': label, 'score': score}
+                entity_map[(start, end)] = {'text': text, 'label': label, 'score': score, 'start': start, 'end': end}
             else:
                 # Compare confidence scores and assign the most relevant category
-                current_label = entity_map[(start, end)]['label']
+                current_entity = entity_map[(start, end)]
                 if label == 'PCI' and ('ACCOUNTNUM' in text or 'CREDITCARDNUMBER' in text):
                     entity_map[(start, end)]['label'] = 'PCI'
-                elif score > entity_map[(start, end)]['score']:
-                    entity_map[(start, end)] = {'text': text, 'label': label, 'score': score}
+                elif score > current_entity['score']:
+                    entity_map[(start, end)] = {'text': text, 'label': label, 'score': score, 'start': start, 'end': end}
     
     for (start, end), entity in entity_map.items():
         resolved_entities.append(entity)
     
     return resolved_entities
+
 
 # Color code the entities based on category
 def color_code_entities(text, entities):
