@@ -1,6 +1,6 @@
 import streamlit as st
 from transformers import pipeline
-
+import html
 # Load the models
 pii_model = pipeline("ner", model="iiiorg/piiranha-v1-detect-personal-information")
 pci_model = pipeline("ner", model="lakshyakh93/deberta_finetuned_pii")
@@ -45,23 +45,41 @@ def resolve_conflicts(entities):
 
 
 # Color code the entities based on category
+
+
+# Color-code the entities in the input text
 def color_code_entities(text, entities):
     color_map = {
         'PII': '#ADD8E6',  # Light blue
         'PCI': '#FFFFE0',  # Light yellow
         'PHI': '#FFC0CB'   # Light pink
     }
+    
+    # Escape any HTML special characters to avoid formatting issues
+    text = html.escape(text)
+    
+    # Sort entities by their 'start' position
     sorted_entities = sorted(entities, key=lambda x: x['start'])
+    
     colored_text = text
     offset = 0
-
+    
     for entity in sorted_entities:
         start = entity['start'] + offset
         end = entity['end'] + offset
         label = entity['label']
-        entity_text = text[start:end]
-        colored_text = colored_text[:start] + f"<span style='background-color:{color_map[label]}'>{entity_text}</span>" + colored_text[end:]
-        offset += len(f"<span style='background-color:{color_map[label]}'>") + len("</span>") - (end - start)
+        
+        # Get the color for the label
+        color = color_map.get(label, '#FFFFFF')  # Default to white if label not found
+        
+        # Wrap the entity in a span with the appropriate color
+        entity_text = f'<span style="background-color:{color}">{text[start:end]}</span>'
+        
+        # Replace the entity text in the original text with the colored version
+        colored_text = colored_text[:start] + entity_text + colored_text[end:]
+        
+        # Adjust offset for the next replacement
+        offset += len(entity_text) - (end - start)
     
     return colored_text
 
