@@ -1,3 +1,5 @@
 transformers
 PyTorch
 TensorFlow
+streamlit
+torch
